@@ -2,5 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='eventlog-home'),
+    path('log/', views.log, name='eventlog-home'),
+    path('', views.kev, name='KEV-home'),
 ]

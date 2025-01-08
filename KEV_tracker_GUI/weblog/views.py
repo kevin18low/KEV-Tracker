@@ -1,7 +1,10 @@
 from django.shortcuts import render
 import mysql.connector
 
-def home(request):
+def kev(request):
+    return render(request, 'weblog/kev.html')
+
+def log(request):
     db = mysql.connector.connect(
     host="localhost",
     user="kevin",
@@ -23,9 +26,9 @@ def home(request):
     # Convert each row into a dictionary and append to the list
     for row in rows:
         row_dict = dict(zip(columns, row))  # Convert row to dictionary
-        logs.append(row_dict)     # Append to the list
+        logs.insert(0, row_dict)     # Append to the list
 
     context = {
         'logs': logs
     }
-    return render(request, 'weblog/home.html', context)
+    return render(request, 'weblog/log.html', context)
