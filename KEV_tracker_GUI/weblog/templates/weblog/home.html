@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Log</title>
+</head>
+<body>
+    <h1>Event log home</h1>
+    <table>
+        <tr>
+          <th>Status</th>
+          <th>Time Accessed</th>
+          <th>New Records Added</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.Status }}</td>
+            <td>{{ log.Time }}</td>
+            <td>{{ log.NewRecords }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
