@@ -1,20 +1,5 @@
 {% extends "weblog/base.html" %}
+
 {% block content %}
     <h1>KEV Event Log</h1>
-    <table class="table">
-        <thead class="thead-dark">
-            <tr>
-            <th>Status</th>
-            <th>Time Accessed</th>
-            <th>New Records Added</th>
-            </tr>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.Status }}</td>
-                <td>{{ log.Time }}</td>
-                <td>{{ log.NewRecords }}</td>
-            </tr>
-        </thead>
-        {% endfor %}
-    </table>
 {% endblock content %}
