@@ -62,7 +62,7 @@ def search(request):
         table = "KEV_Catalog"
         search_term = kev_search
     else:
-        return run(request, "KEV_Catalog")
+        return run(request, "KEV_Catalog", "")
 
     db = mysql.connector.connect(
         host="localhost",

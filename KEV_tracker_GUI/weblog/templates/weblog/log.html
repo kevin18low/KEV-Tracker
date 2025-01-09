@@ -7,8 +7,8 @@
     </form>
 {% endblock search %}
 {% block content %}
-    <div class="ref-cont">
-        <h1>KEV Event Log</h1>
-        <button class="refresh">Refresh</button>
-    </div>
+    <h1>KEV Event Log</h1>
+    <form action="/log">
+        <button class="refresh" type="submit">Refresh</button>
+    </form>
 {% endblock content %}
