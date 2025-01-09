@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'KEV_tracker_GUI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'CISA-KEV', 
+        'USER': 'kevin',               
+        'PASSWORD': 'klow05_SQL_**',    
+        'HOST': 'localhost',             
+        'PORT': '3306',          
     }
 }
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 import mysql.connector
 
-def run(request, table):
+def run(request, table, condition):
     db = mysql.connector.connect(
     host="localhost",
     user="kevin",
@@ -11,7 +11,9 @@ def run(request, table):
 
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM " + table)
+    query = f"SELECT * FROM {table} {condition}"
+
+    cursor.execute(query)
     rows = cursor.fetchall()
 
     # Extract column names from cursor.description
@@ -27,7 +29,7 @@ def run(request, table):
             logs.append(row_dict)     # Append to the list
         elif table == "Event_log":
             logs.insert(0, row_dict)     # Insert to front of the list
-        
+
     context = {
         'cols': columns,
         'logs': logs
@@ -39,7 +41,41 @@ def run(request, table):
         return render(request, 'weblog/log.html', context)
 
 def kev(request):
-    return run(request, "KEV_Catalog")
+    return run(request, "KEV_Catalog", "")
 
 def log(request):
-    return run(request, "Event_log")
+    return run(request, "Event_log", "")
+
+def search(request):
+    log_search = request.GET.get('log-search', '')
+    kev_search = request.GET.get('kev-search', '')
+    
+    if log_search:
+        table = "Event_log"
+        search_term = log_search
+    elif kev_search:
+        table = "KEV_Catalog"
+        search_term = kev_search
+    else:
+        return run(request, "KEV_Catalog")
+
+    db = mysql.connector.connect(
+        host="localhost",
+        user="kevin",
+        passwd="klow05_SQL_**",
+        database="CISA-KEV"
+    )   
+
+    cursor = db.cursor()
+
+    # Get column names
+    cursor.execute(f"SHOW COLUMNS FROM {table}")
+    columns = [col[0] for col in cursor.fetchall()]
+
+    # Build the WHERE clause
+    where_clause = " OR ".join([f"LOWER({col}) LIKE LOWER('%{search_term}%')" for col in columns])
+
+    query = f"SELECT * FROM {table} WHERE {where_clause}"
+    print(query)
+    
+    return run(request, table, f"WHERE {where_clause}")
