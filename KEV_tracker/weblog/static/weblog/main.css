@@ -3,7 +3,7 @@ h1 {
     width: fit-content;
 }
 
-.ref-cont {
+.main-cont {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;

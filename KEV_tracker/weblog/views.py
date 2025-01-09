@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import mysql.connector
+from .KEV_script import script
 
 # Render selected table with optional filters
 def run(request, table, condition):
@@ -84,3 +85,8 @@ def search(request):
     
     # Render filtered table
     return run(request, table, f"WHERE {where_clause}")
+
+# Manually download latest KEV Catalog and refresh page
+def refresh(request):
+    script.create_table_from_csv()
+    return run(request, "KEV_Catalog", "")
