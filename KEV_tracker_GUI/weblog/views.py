@@ -1,6 +1,7 @@
 from django.shortcuts import render
 import mysql.connector
 
+# Render selected table with optional filters
 def run(request, table, condition):
     db = mysql.connector.connect(
     host="localhost",
@@ -40,13 +41,17 @@ def run(request, table, condition):
     elif table == "Event_log":
         return render(request, 'weblog/log.html', context)
 
+# Render KEV_Catalog table
 def kev(request):
     return run(request, "KEV_Catalog", "")
 
+# Render Event_log table
 def log(request):
     return run(request, "Event_log", "")
 
+# Render appropriate table filtered by user keyword search
 def search(request):
+    # Check if either search bar has an input
     log_search = request.GET.get('log-search', '')
     kev_search = request.GET.get('kev-search', '')
     
@@ -72,10 +77,10 @@ def search(request):
     cursor.execute(f"SHOW COLUMNS FROM {table}")
     columns = [col[0] for col in cursor.fetchall()]
 
-    # Build the WHERE clause
+    # Build WHERE clause according to user input
     where_clause = " OR ".join([f"LOWER({col}) LIKE LOWER('%{search_term}%')" for col in columns])
 
     query = f"SELECT * FROM {table} WHERE {where_clause}"
-    print(query)
     
+    # Render filtered table
     return run(request, table, f"WHERE {where_clause}")
