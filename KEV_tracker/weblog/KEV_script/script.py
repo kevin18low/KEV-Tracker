@@ -96,7 +96,11 @@ def create_table_from_csv():
 if __name__ == "__main__":
  
     create_log_table()  # Set up empty event log table
+    create_table_from_csv()
 
+    # Uncomment if you would like to have user input for interval
+    
+    """
     interval = input("How often (hours) do you want to update the KEV_Catalog? ")
     try:
         interval = float(interval)
@@ -104,8 +108,8 @@ if __name__ == "__main__":
         print("Your input was invalid. The interval has been set to the default 4 hours.")
         interval = 4
 
-    create_table_from_csv()
     schedule.every(interval).hours.do(create_table_from_csv)
+    schedule.every(4).hours.do(create_table_from_csv)
 
     # Download and update database every n hours
     def run(n):
@@ -115,3 +119,4 @@ if __name__ == "__main__":
 
     while True:
         run(interval)
+    """
