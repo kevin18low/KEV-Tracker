@@ -1,14 +1,18 @@
 from django.shortcuts import render
 import mysql.connector
 from .KEV_script import script
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Render selected table with optional filters
 def run(request, table, condition):
     db = mysql.connector.connect(
-    host="localhost",
-    user="kevin",
-    passwd="klow05_SQL_**",
-    database="CISA-KEV"
+    host=os.environ.get('HOST'),
+    user=os.environ.get('USER'),
+    passwd=os.environ.get('PW'),
+    database=os.environ.get('DB')
     )   
 
     cursor = db.cursor()
@@ -66,10 +70,10 @@ def search(request):
         return run(request, "KEV_Catalog", "")
 
     db = mysql.connector.connect(
-        host="localhost",
-        user="kevin",
-        passwd="klow05_SQL_**",
-        database="CISA-KEV"
+        host=os.environ.get('HOST'),
+        user=os.environ.get('USER'),
+        passwd=os.environ.get('PW'),
+        database=os.environ.get('DB')
     )   
 
     cursor = db.cursor()

@@ -3,12 +3,16 @@ import csv
 import schedule
 import time
 from urllib.request import urlretrieve
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  
 
 db = mysql.connector.connect(
-    host="localhost",
-    user="kevin",
-    passwd="klow05_SQL_**",
-    database="CISA-KEV"
+    host=os.environ.get('HOST'),
+    user=os.environ.get('USER'),
+    passwd=os.environ.get('PW'),
+    database=os.environ.get('DB')
 )
 
 if db.is_connected():

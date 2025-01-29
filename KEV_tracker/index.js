@@ -1,10 +1,12 @@
 import express from "express";
 import bodyParser from "body-parser";
 import mysql2 from "mysql2/promise";
+import env from "dotenv";
 
 const app = express();
 const PORT = 4000;
 app.use(bodyParser.json());
+env.config();
 
 let db;
 
@@ -12,10 +14,10 @@ let db;
 const connectDB = async () => {
   try {
     db = await mysql2.createConnection({
-      host: 'localhost',
-      user: 'kevin',
-      password: 'klow05_SQL_**',
-      database: 'CISA-KEV'
+      host: process.env.HOST,
+      user: process.env.USER,
+      password: process.env.PW,
+      database: process.env.DB,
     });
     console.log('Database connected successfully');
   } catch (error) {
@@ -44,6 +46,16 @@ app.get("/cve", async (req, res) => {
   }
 });
 
+// Get all records from KEV database
+app.get("/", async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT * FROM KEV_Catalog");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get number of records in database
 app.get("/count", async (req, res) => {
     try {
@@ -64,5 +76,14 @@ app.get("/cve/:cveID", async (req, res) => {
     }
 });
 
+// Get all records from a specific vendor
+app.get("/:vendor", async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT * FROM KEV_Catalog WHERE LOWER(vendorProject) = LOWER(?)", [req.params.vendor]);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
