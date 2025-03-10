@@ -31,7 +31,7 @@ def create_log_table():
 url = "https://www.cisa.gov/sites/default/files/csv/known_exploited_vulnerabilities.csv"
 
 # Filepath to downloaded csv- match with your user and path accordingly
-csv_file_path = '/home/mrklow/Downloads/known_exploited_vulnerabilities.csv'
+csv_file_path = os.environ.get("FILE_PATH")
 
 # Download csv from CISA website
 def download_csv():
