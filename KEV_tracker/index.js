@@ -36,7 +36,6 @@ const createApiKeyTable = async () => {
       id INT AUTO_INCREMENT PRIMARY KEY,
       api_key VARCHAR(64) NOT NULL UNIQUE,
       user_id INT,
-      description VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       last_used TIMESTAMP NULL,
       is_active BOOLEAN DEFAULT TRUE
@@ -101,22 +100,17 @@ startServer();
 // Create new API key
 app.post("/api-keys", async (req, res) => {
   try {
-    const { user_id, description } = req.body;
-    
-    if (!description) {
-      return res.status(400).json({ error: "Description is required" });
-    }
+    const user_id = req.headers['user-id'];
     
     const apiKey = generateApiKey();
     
     await db.execute(
-      'INSERT INTO api_keys (api_key, user_id, description) VALUES (?, ?, ?)',
-      [apiKey, user_id || null, description]
+      'INSERT INTO api_keys (api_key, user_id) VALUES (?, ?)',
+      [apiKey, user_id]
     );
     
     res.status(201).json({ 
-      description, 
-      user_id: user_id || null,
+      user_id: user_id,
       apiKey 
     });
   } catch (error) {
