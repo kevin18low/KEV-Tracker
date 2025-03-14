@@ -2,6 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import mysql2 from "mysql2/promise";
 import env from "dotenv";
+import crypto from "crypto";
 
 const app = express();
 const PORT = 4000;
@@ -14,16 +15,77 @@ let db;
 const connectDB = async () => {
   try {
     db = await mysql2.createConnection({
-      host: process.env.HOST,
+      host: process.env.INTERNAL_HOST,
       user: process.env.USER,
       password: process.env.PW,
       database: process.env.DB,
     });
     console.log('Database connected successfully');
+    await createApiKeyTable();
   } catch (error) {
     console.error('Database connection failed:', error);
     process.exit(1);
   }
+};
+
+// Create API keys table if it doesn't exist
+const createApiKeyTable = async () => {
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS api_keys (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      api_key VARCHAR(64) NOT NULL UNIQUE,
+      user_id INT,
+      description VARCHAR(255),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_used TIMESTAMP NULL,
+      is_active BOOLEAN DEFAULT TRUE
+      )
+    `);
+  } catch (error) {
+    console.error('Error creating API keys table:', error);
+  }
+};
+
+// Verify API key
+const verifyApiKey = async (req, res, next) => {
+  const apiKey = req.header('x-api-key') || req.query.api_key;
+  const userId = req.header('user-id') || req.query.user_id || req.body.user_id;
+  
+  if (!apiKey) {
+    return res.status(401).json({ error: 'API key is required' });
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: 'userID is required' });
+  }
+  
+  try {
+    const [rows] = await db.execute(
+      'SELECT * FROM api_keys WHERE api_key = ? AND is_active = TRUE AND user_id = ?',
+      [apiKey, userId]
+    );
+    
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+        
+    // Update last_used timestamp
+    await db.execute(
+      'UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE api_key = ? AND user_id = ?',
+      [apiKey, userId]
+    );
+    
+    req.apiKeyInfo = rows[0];
+    next();
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to authenticate API key' });
+  }
+};
+
+// Generate a new API key
+const generateApiKey = () => {
+  return crypto.randomBytes(32).toString('hex');
 };
 
 // Initialize connection before starting server
@@ -36,8 +98,34 @@ const startServer = async () => {
   
 startServer();
 
+// Create new API key
+app.post("/api-keys", async (req, res) => {
+  try {
+    const { user_id, description } = req.body;
+    
+    if (!description) {
+      return res.status(400).json({ error: "Description is required" });
+    }
+    
+    const apiKey = generateApiKey();
+    
+    await db.execute(
+      'INSERT INTO api_keys (api_key, user_id, description) VALUES (?, ?, ?)',
+      [apiKey, user_id || null, description]
+    );
+    
+    res.status(201).json({ 
+      description, 
+      user_id: user_id || null,
+      apiKey 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all cveIDs from database
-app.get("/cve", async (req, res) => {
+app.get("/cve", verifyApiKey, async (req, res) => {
   try {
     const [rows] = await db.execute("SELECT cveID FROM KEV_Catalog");
     res.json(rows);
@@ -47,7 +135,7 @@ app.get("/cve", async (req, res) => {
 });
 
 // Get all records from KEV database
-app.get("/", async (req, res) => {
+app.get("/", verifyApiKey, async (req, res) => {
   try {
     const [rows] = await db.execute("SELECT * FROM KEV_Catalog");
     res.json(rows);
@@ -57,7 +145,7 @@ app.get("/", async (req, res) => {
 });
 
 // Get number of records in database
-app.get("/count", async (req, res) => {
+app.get("/count", verifyApiKey, async (req, res) => {
     try {
       const [rows] = await db.execute("SELECT COUNT(cveID) FROM KEV_Catalog");
       res.json(rows);
@@ -67,7 +155,7 @@ app.get("/count", async (req, res) => {
 });
 
 // Get record by cveID
-app.get("/cve/:cveID", async (req, res) => {
+app.get("/cve/:cveID", verifyApiKey, async (req, res) => {
     try {
       const [rows] = await db.execute("SELECT * FROM KEV_Catalog WHERE cveID = ?", [req.params.cveID]);
       res.json(rows);
@@ -77,7 +165,7 @@ app.get("/cve/:cveID", async (req, res) => {
 });
 
 // Get all records from a specific vendor
-app.get("/:vendor", async (req, res) => {
+app.get("/:vendor", verifyApiKey, async (req, res) => {
   try {
     const [rows] = await db.execute("SELECT * FROM KEV_Catalog WHERE LOWER(vendorProject) = LOWER(?)", [req.params.vendor]);
     res.json(rows);
