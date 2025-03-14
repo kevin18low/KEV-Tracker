@@ -6,10 +6,10 @@ from urllib.request import urlretrieve
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  
+load_dotenv()
 
 db = mysql.connector.connect(
-    host=os.environ.get('HOST'),
+    host=os.environ.get('INTERNAL_HOST'),
     user=os.environ.get('USER'),
     passwd=os.environ.get('PW'),
     database=os.environ.get('DB')
