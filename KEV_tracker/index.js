@@ -35,7 +35,7 @@ const createApiKeyTable = async () => {
       CREATE TABLE IF NOT EXISTS api_keys (
       id INT AUTO_INCREMENT PRIMARY KEY,
       api_key VARCHAR(64) NOT NULL UNIQUE,
-      user_id INT,
+      app_name VARCHAR(100) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       last_used TIMESTAMP NULL,
       is_active BOOLEAN DEFAULT TRUE
@@ -49,20 +49,16 @@ const createApiKeyTable = async () => {
 // Verify API key
 const verifyApiKey = async (req, res, next) => {
   const apiKey = req.header('x-api-key') || req.query.api_key;
-  const userId = req.header('user-id') || req.query.user_id || req.body.user_id;
+  const appName = req.header('app-name') || req.query.app_name || req.body.app_name;
   
   if (!apiKey) {
     return res.status(401).json({ error: 'API key is required' });
   }
-
-  if (!userId) {
-    return res.status(401).json({ error: 'userID is required' });
-  }
   
   try {
     const [rows] = await db.execute(
-      'SELECT * FROM api_keys WHERE api_key = ? AND is_active = TRUE AND user_id = ?',
-      [apiKey, userId]
+      'SELECT * FROM api_keys WHERE api_key = ? AND is_active = TRUE AND app_name = ?',
+      [apiKey, appName]
     );
     
     if (rows.length === 0) {
@@ -71,11 +67,11 @@ const verifyApiKey = async (req, res, next) => {
         
     // Update last_used timestamp
     await db.execute(
-      'UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE api_key = ? AND user_id = ?',
-      [apiKey, userId]
+      'UPDATE api_keys SET last_used = CURRENT_TIMESTAMP WHERE api_key = ? AND app_name = ?',
+      [apiKey, appName]
     );
     
-    req.apiKeyInfo = rows[0];
+    req.application = rows[0];
     next();
   } catch (error) {
     return res.status(500).json({ error: 'Failed to authenticate API key' });
@@ -100,17 +96,17 @@ startServer();
 // Create new API key
 app.post("/api-keys", async (req, res) => {
   try {
-    const user_id = req.headers['user-id'];
+    const appName = req.headers['app-name'];
     
     const apiKey = generateApiKey();
     
     await db.execute(
-      'INSERT INTO api_keys (api_key, user_id) VALUES (?, ?)',
-      [apiKey, user_id]
+      'INSERT INTO api_keys (api_key, app_name) VALUES (?, ?)',
+      [apiKey, appName]
     );
     
     res.status(201).json({ 
-      user_id: user_id,
+      app_name: appName,
       apiKey 
     });
   } catch (error) {
