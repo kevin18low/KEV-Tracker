@@ -6,6 +6,18 @@ __pycache__/
 # C extensions
 *.so
 
+# Node dependencies
+KEV_tracker/node_modules/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 # Distribution / packaging
 .Python
 build/

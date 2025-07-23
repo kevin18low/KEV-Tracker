@@ -1,13 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
 import mysql2 from "mysql2/promise";
-import env from "dotenv";
+import dotenv from "dotenv";
 import crypto from "crypto";
+dotenv.config();
 
 const app = express();
 const PORT = 4000;
 app.use(bodyParser.json());
-env.config();
 
 let db;
 
